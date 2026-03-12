@@ -18,11 +18,15 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy entire backend project
+# Copy backend project
 COPY . .
 
-# Create non-root user
-RUN useradd -m appuser
+# Create required folders and permissions
+RUN mkdir -p /app/rag/index_store \
+    && useradd -m appuser \
+    && chown -R appuser:appuser /app
+
+# Switch to non-root user
 USER appuser
 
 EXPOSE 8000
