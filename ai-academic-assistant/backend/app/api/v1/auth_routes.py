@@ -7,18 +7,19 @@ from app.services.auth_service import (
     register_user,
     login_user,
     refresh_access_token,
-    logout_user,
+    logout_user
 )
+
 from app.middleware.auth_middleware import get_current_user
 from app.models.user import User
 
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-# ---------------------------------------------------
+# ----------------------------------------
 # REGISTER
-# ---------------------------------------------------
+# ----------------------------------------
 
 @router.post("/register", response_model=AuthResponse)
 def register(
@@ -29,9 +30,9 @@ def register(
     return register_user(request, response, db)
 
 
-# ---------------------------------------------------
+# ----------------------------------------
 # LOGIN
-# ---------------------------------------------------
+# ----------------------------------------
 
 @router.post("/login", response_model=AuthResponse)
 def login(
@@ -42,9 +43,9 @@ def login(
     return login_user(request, response, db)
 
 
-# ---------------------------------------------------
+# ----------------------------------------
 # REFRESH TOKEN
-# ---------------------------------------------------
+# ----------------------------------------
 
 @router.post("/refresh")
 def refresh(
@@ -55,9 +56,9 @@ def refresh(
     return refresh_access_token(request, response, db)
 
 
-# ---------------------------------------------------
+# ----------------------------------------
 # LOGOUT
-# ---------------------------------------------------
+# ----------------------------------------
 
 @router.post("/logout")
 def logout(
@@ -68,14 +69,13 @@ def logout(
     return logout_user(request, response, db)
 
 
-# ---------------------------------------------------
+# ----------------------------------------
 # CURRENT USER
-# ---------------------------------------------------
+# ----------------------------------------
 
 @router.get("/me")
-def get_current_user_profile(
-    current_user: User = Depends(get_current_user)
-):
+def get_me(current_user: User = Depends(get_current_user)):
+
     return {
         "id": current_user.id,
         "email": current_user.email,

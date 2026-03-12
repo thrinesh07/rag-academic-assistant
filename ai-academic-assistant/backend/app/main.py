@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastfrom fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
@@ -19,9 +19,10 @@ app = FastAPI(
 )
 
 
-# -----------------------------
-# CORS (must be FIRST middleware)
-# -----------------------------
+# --------------------------------------------------
+# CORS (MUST BE FIRST)
+# --------------------------------------------------
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -35,32 +36,31 @@ app.add_middleware(
 )
 
 
-# -----------------------------
+# --------------------------------------------------
 # CUSTOM MIDDLEWARE
-# -----------------------------
+# --------------------------------------------------
+
 app.add_middleware(RequestLoggerMiddleware)
 app.add_middleware(RateLimiterMiddleware)
 
 
-# -----------------------------
+# --------------------------------------------------
 # ROUTES
-# -----------------------------
+# --------------------------------------------------
+
 app.include_router(api_router, prefix="/api/v1")
 
 
-# -----------------------------
-# EXCEPTION HANDLERS
-# -----------------------------
+# --------------------------------------------------
+# EXCEPTIONS
+# --------------------------------------------------
+
 register_exception_handlers(app)
 
 
-# -----------------------------
-# ROOT
-# -----------------------------
-@app.get("/", tags=["Root"])
+@app.get("/")
 def root():
     return {
         "service": settings.APP_NAME,
-        "version": "1.0.0",
         "status": "running"
     }

@@ -9,7 +9,7 @@ from app.core.logger import logger
 
 
 RATE_LIMIT = 20
-WINDOW = 60  # seconds
+WINDOW = 60
 
 request_store = defaultdict(list)
 
@@ -18,9 +18,7 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
 
-        # ------------------------------------------------
-        # IMPORTANT: allow CORS preflight requests
-        # ------------------------------------------------
+        # IMPORTANT: allow CORS preflight
         if request.method == "OPTIONS":
             return await call_next(request)
 
@@ -29,7 +27,6 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
         timestamps = request_store[identifier]
 
-        # remove expired timestamps
         request_store[identifier] = [
             ts for ts in timestamps if current_time - ts < WINDOW
         ]
@@ -40,10 +37,7 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(
                 status_code=429,
-                content={
-                    "success": False,
-                    "error": "Rate limit exceeded"
-                }
+                content={"error": "Rate limit exceeded"}
             )
 
         request_store[identifier].append(current_time)
@@ -54,11 +48,9 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
     def get_identifier(self, request: Request):
 
-        # use user token if available
         user_cookie = request.cookies.get("access_token")
 
         if user_cookie:
             return user_cookie
 
-        # fallback to IP
         return request.client.host
