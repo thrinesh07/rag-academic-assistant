@@ -9,10 +9,6 @@ from app.core.config import settings
 from app.lifespan import lifespan
 
 
-# ==========================================================
-# APPLICATION INSTANCE
-# ==========================================================
-
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
@@ -23,47 +19,29 @@ app = FastAPI(
 )
 
 
-# ==========================================================
-# CORS CONFIGURATION
-# ==========================================================
-
+# CORS FIX
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
-    allow_credentials=True,     # Required for HTTPOnly cookies
+    allow_origins=[
+        "http://localhost:5173",
+        "https://rag-academic-assistant.vercel.app",
+    ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# ==========================================================
-# MIDDLEWARE REGISTRATION
-# ==========================================================
-
-# Order matters.
-# Request logger first → rate limiter → route handlers.
-
 app.add_middleware(RequestLoggerMiddleware)
 app.add_middleware(RateLimiterMiddleware)
 
 
-# ==========================================================
-# ROUTES
-# ==========================================================
-
 app.include_router(api_router, prefix="/api/v1")
 
 
-# ==========================================================
-# EXCEPTION HANDLERS
-# ==========================================================
-
 register_exception_handlers(app)
 
-
-# ==========================================================
-# ROOT ENDPOINT
-# ==========================================================
 
 @app.get("/", tags=["Root"])
 def root():
