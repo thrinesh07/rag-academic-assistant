@@ -1,0 +1,23 @@
+:root {
+  /* Brand */
+  --color-primary: #1f2937;
+  --color-primary-hover: #111827;
+
+  /* Background */
+  --color-bg: #f5f7fa;
+  --color-card-bg: #ffffff;
+
+  /* Text */
+  --color-text: #1f2937;
+  --color-muted: #6c757d;
+
+  /* Border */
+  --color-border: #e5e7eb;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  /* Shadow */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
