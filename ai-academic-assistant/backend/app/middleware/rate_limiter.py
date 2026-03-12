@@ -1,9 +1,12 @@
 import time
 from collections import defaultdict
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.logger import logger
+
 
 RATE_LIMIT = 20
 WINDOW = 60  # seconds
@@ -15,18 +18,26 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
 
+        # ------------------------------------------------
+        # IMPORTANT: allow CORS preflight requests
+        # ------------------------------------------------
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         identifier = self.get_identifier(request)
         current_time = time.time()
 
         timestamps = request_store[identifier]
 
-        # Remove old timestamps
+        # remove expired timestamps
         request_store[identifier] = [
             ts for ts in timestamps if current_time - ts < WINDOW
         ]
 
         if len(request_store[identifier]) >= RATE_LIMIT:
+
             logger.warning(f"Rate limit exceeded: {identifier}")
+
             return JSONResponse(
                 status_code=429,
                 content={
@@ -38,10 +49,16 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         request_store[identifier].append(current_time)
 
         response = await call_next(request)
+
         return response
 
     def get_identifier(self, request: Request):
+
+        # use user token if available
         user_cookie = request.cookies.get("access_token")
+
         if user_cookie:
             return user_cookie
+
+        # fallback to IP
         return request.client.host

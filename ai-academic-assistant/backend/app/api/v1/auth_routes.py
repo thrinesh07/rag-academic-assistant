@@ -9,8 +9,11 @@ from app.services.auth_service import (
     refresh_access_token,
     logout_user,
 )
+from app.middleware.auth_middleware import get_current_user
+from app.models.user import User
 
-router = APIRouter()
+
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 # ---------------------------------------------------
@@ -63,3 +66,18 @@ def logout(
     db: Session = Depends(get_db)
 ):
     return logout_user(request, response, db)
+
+
+# ---------------------------------------------------
+# CURRENT USER
+# ---------------------------------------------------
+
+@router.get("/me")
+def get_current_user_profile(
+    current_user: User = Depends(get_current_user)
+):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "created_at": current_user.created_at
+    }
