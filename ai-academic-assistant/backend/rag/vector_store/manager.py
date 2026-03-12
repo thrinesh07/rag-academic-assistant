@@ -16,25 +16,38 @@ class VectorIndex:
     """
     FAISS vector index manager.
 
-    Stores:
-    - FAISS index
-    - metadata_store (parallel list to vectors)
+    Lazy initialization to prevent heavy startup on
+    low-memory environments (Render free tier).
     """
 
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(VectorIndex, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
+        if hasattr(self, "_initialized"):
+            return
+
         self.index = None
         self.metadata_store = []
-        self._load_or_initialize()
 
-    # --------------------------------------------
-    # LOAD OR CREATE
-    # --------------------------------------------
+        self._initialized = True
 
-    def _load_or_initialize(self):
+    # ------------------------------------------------
+    # LAZY LOAD
+    # ------------------------------------------------
+
+    def _ensure_loaded(self):
+
+        if self.index is not None:
+            return
 
         if os.path.exists(FAISS_INDEX_PATH) and os.path.exists(METADATA_PATH):
 
-            logger.info("Loading existing FAISS index and metadata")
+            logger.info("Loading existing FAISS index")
 
             self.index = faiss.read_index(str(FAISS_INDEX_PATH))
 
@@ -42,18 +55,19 @@ class VectorIndex:
                 self.metadata_store = pickle.load(f)
 
         else:
+
             logger.info("Creating new FAISS index")
 
             self.index = faiss.IndexFlatIP(EMBEDDING_DIM)
             self.metadata_store = []
 
-    # --------------------------------------------
-    # ADD VECTORS
-    # --------------------------------------------
-
-    # rag/vector_store/manager.py
+    # ------------------------------------------------
+    # ADD
+    # ------------------------------------------------
 
     def add(self, embeddings: np.ndarray, metadata_list: list):
+
+        self._ensure_loaded()
 
         if embeddings.shape[1] != EMBEDDING_DIM:
             raise ValueError("Embedding dimension mismatch")
@@ -66,9 +80,29 @@ class VectorIndex:
 
         self._persist()
 
-    # --------------------------------------------
+    # ------------------------------------------------
+    # SEARCH
+    # ------------------------------------------------
+
+    def search(self, query_embedding: np.ndarray, k: int):
+
+        self._ensure_loaded()
+
+        query_embedding = query_embedding.astype("float32")
+
+        scores, indices = self.index.search(query_embedding, k)
+
+        results = []
+
+        for idx in indices[0]:
+            if idx < len(self.metadata_store):
+                results.append(self.metadata_store[idx])
+
+        return results
+
+    # ------------------------------------------------
     # SAVE
-    # --------------------------------------------
+    # ------------------------------------------------
 
     def _persist(self):
 
@@ -77,18 +111,12 @@ class VectorIndex:
         with open(METADATA_PATH, "wb") as f:
             pickle.dump(self.metadata_store, f)
 
-    # --------------------------------------------
-    # RECONSTRUCT
-    # --------------------------------------------
-
-    def reconstruct(self, idx: int):
-        return self.index.reconstruct(idx)
-
-    # --------------------------------------------
+    # ------------------------------------------------
     # SIZE
-    # --------------------------------------------
+    # ------------------------------------------------
 
     def size(self):
+
+        self._ensure_loaded()
+
         return self.index.ntotal
-
-

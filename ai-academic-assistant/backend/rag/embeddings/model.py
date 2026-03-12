@@ -16,46 +16,38 @@ logging.set_verbosity_error()
 
 class EmbeddingModel:
     """
-    Production-safe embedding wrapper.
+    Memory-safe embedding wrapper.
 
-    - Uses local all-MiniLM-L6-v2 model
-    - 384 dimensional output
-    - Normalized vectors for cosine similarity
-    - Singleton pattern to prevent multiple loads
+    Lazy loads the model only when embeddings
+    are first requested.
     """
 
     _instance = None
-    _model = None  # Shared model object
+    _model = None
 
-    # --------------------------------------------------
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(EmbeddingModel, cls).__new__(cls)
         return cls._instance
 
-    # --------------------------------------------------
     def __init__(self):
+
         if hasattr(self, "_initialized"):
             return
 
         self.device = get_device()
-
-        # Load model only once
-        if EmbeddingModel._model is None:
-            EmbeddingModel._model = self._load_local_model()
-
-        self.model = EmbeddingModel._model
-
         self.batch_size = 32 if self.device == "cuda" else 16
 
         self._initialized = True
 
-    # --------------------------------------------------
-    def _load_local_model(self):
-        """
-        Force load model from local path only.
-        Prevents runtime HuggingFace downloads.
-        """
+    # ------------------------------------------------
+    # LAZY LOAD MODEL
+    # ------------------------------------------------
+
+    def _load_model(self):
+
+        if EmbeddingModel._model is not None:
+            return
 
         local_path = os.path.join(
             os.getcwd(),
@@ -65,29 +57,32 @@ class EmbeddingModel:
 
         if not os.path.exists(local_path):
             raise RuntimeError(
-                f"Local embedding model not found at: {local_path}"
+                f"Embedding model not found at {local_path}"
             )
 
         print(f"[EmbeddingModel] Loading from: {local_path}")
 
-        return SentenceTransformer(
+        EmbeddingModel._model = SentenceTransformer(
             local_path,
             device=self.device
         )
 
-    # --------------------------------------------------
+    # ------------------------------------------------
+    # EMBEDDINGS
+    # ------------------------------------------------
+
     def embed(self, texts: list[str]):
-        """
-        Generates normalized embeddings.
-        """
 
         if not texts:
             return np.array([], dtype="float32")
 
+        self._load_model()
+
         all_embeddings = []
 
         for batch in batch_iterator(texts, self.batch_size):
-            embeddings = self.model.encode(
+
+            embeddings = EmbeddingModel._model.encode(
                 batch,
                 convert_to_numpy=True,
                 show_progress_bar=False
@@ -97,7 +92,6 @@ class EmbeddingModel:
 
         embeddings = np.vstack(all_embeddings)
 
-        # Dimension safety check
         if embeddings.shape[1] != EMBEDDING_DIM:
             raise ValueError(
                 f"Unexpected embedding dimension: {embeddings.shape[1]}"
