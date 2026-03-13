@@ -1,5 +1,3 @@
-# rag/vector_store/index.py
-
 import faiss
 from pathlib import Path
 from rag.config import FAISS_INDEX_PATH, EMBEDDING_DIM
@@ -33,3 +31,11 @@ class FaissIndex:
 
     def size(self):
         return self.index.ntotal
+
+    # 🔧 ADD THIS METHOD
+    def reconstruct(self, idx: int):
+        """
+        Reconstruct vector from FAISS index.
+        Required for subject-filtered retrieval.
+        """
+        return self.index.reconstruct(idx)
