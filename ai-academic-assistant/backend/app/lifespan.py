@@ -8,6 +8,10 @@ from app.database.session import engine
 from app.core.logger import configure_logger, logger
 from app.integrations.rag_adapter import check_rag_health
 
+# RAG imports
+from rag.vector_store.manager import VectorIndex
+from rag.embeddings.model import EmbeddingModel
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,18 +21,22 @@ async def lifespan(app: FastAPI):
     Handles:
     - Logger initialization
     - Database connectivity check
+    - RAG system preload
     - RAG health verification
-    - Graceful shutdown logging
+    - Graceful shutdown
     """
 
-    # ----------------------------
-    # STARTUP PHASE
-    # ----------------------------
+    # ------------------------------------------------
+    # STARTUP
+    # ------------------------------------------------
 
     configure_logger()
     logger.info("Starting AI Academic Assistant API...")
 
-    # DB Health Check
+    # -----------------------------
+    # Database health check
+    # -----------------------------
+
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
@@ -37,21 +45,46 @@ async def lifespan(app: FastAPI):
         logger.critical(f"Database connection failed: {str(e)}")
         raise RuntimeError("Database initialization failed")
 
-    # RAG Health Check (non-blocking safe check)
+    # -----------------------------
+    # Preload RAG components
+    # -----------------------------
+
+    try:
+        logger.info("Preloading RAG components...")
+
+        # Load FAISS index
+        vector_store = VectorIndex()
+        vector_store._ensure_loaded()
+
+        # Load embedding model
+        embedding_model = EmbeddingModel()
+
+        logger.info("Embedding model loaded.")
+        logger.info(f"FAISS vectors loaded: {vector_store.size()}")
+
+    except Exception as e:
+        logger.warning(f"RAG preload failed: {str(e)}")
+
+    # -----------------------------
+    # RAG Health Check
+    # -----------------------------
+
     try:
         rag_status = check_rag_health()
+
         if rag_status["status"] != "healthy":
             logger.warning("RAG system not fully healthy at startup.")
         else:
             logger.info("RAG system ready.")
+
     except Exception as e:
         logger.warning(f"RAG health check failed: {str(e)}")
 
     yield
 
-    # ----------------------------
-    # SHUTDOWN PHASE
-    # ----------------------------
+    # ------------------------------------------------
+    # SHUTDOWN
+    # ------------------------------------------------
 
     logger.info("Shutting down AI Academic Assistant API...")
 
