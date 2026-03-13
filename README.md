@@ -1,15 +1,17 @@
-# AI Academic Assistant – Frontend
+# AI Academic Assistant
 
-A modern React frontend for an **AI-powered Academic Assistant** designed for **B.Tech Computer Science students**.
-The system allows students to ask subject-specific questions and receive AI-generated explanations using a Retrieval-Augmented Generation (RAG) backend.
+A production-grade **AI Academic Assistant for B.Tech Computer Science students** built using a **Retrieval-Augmented Generation (RAG) architecture**.
 
-This repository contains the **frontend application built with React + Vite**.
+The system allows students to ask subject-specific academic questions and receive structured explanations generated using an AI model grounded in verified study material.
+
+Unlike simple chatbots, this project demonstrates **real-world AI system architecture**, combining **machine learning pipelines, scalable backend APIs, and a modern React frontend**.
 
 ---
 
-## Overview
+# Project Overview
 
-The AI Academic Assistant helps students understand difficult computer science concepts by providing structured explanations.
+Students often rely on scattered resources to understand complex computer science concepts.
+This system centralizes those resources into a **subject-aware AI assistant** capable of answering questions based on curated academic documents.
 
 Supported subjects include:
 
@@ -17,45 +19,176 @@ Supported subjects include:
 * Database Management Systems (DBMS)
 * Computer Networks (CN)
 * Data Structures & Algorithms (DSA)
-* Object Oriented Programming (OOPS)
+* Object-Oriented Programming (OOPS)
 
-The assistant communicates with a **FastAPI backend RAG system** that retrieves relevant academic content and generates AI responses.
+Instead of relying purely on a language model's internal knowledge, the assistant uses a **Retrieval-Augmented Generation (RAG) pipeline** to retrieve relevant content before generating answers.
+
+This significantly improves **accuracy, reliability, and transparency**.
 
 ---
 
-## Tech Stack
+# System Architecture
 
-Frontend Framework
+The application follows a layered architecture with clear separation of concerns.
 
-* React (Vite)
+```
+Client (React)
+        ↓
+FastAPI Backend API
+        ↓
+Service Layer
+        ↓
+RAG Adapter
+        ↓
+Retrieval Pipeline
+        ↓
+Vector Database (FAISS)
+        ↓
+Groq LLM
+```
 
-Routing
+---
 
+# High-Level Workflow
+
+1. User submits a question through the chat interface.
+2. Backend validates authentication and request data.
+3. The question is converted into a semantic embedding.
+4. FAISS performs vector similarity search on indexed academic documents.
+5. Relevant document chunks are retrieved.
+6. Retrieved context is injected into a structured prompt.
+7. Groq LLM generates the final explanation.
+8. Chat history and retrieved sources are stored in the database.
+9. The response is returned to the frontend.
+
+This architecture reduces hallucinations and ensures answers are grounded in real academic material.
+
+---
+
+# Key Features
+
+### AI Features
+
+* Retrieval-Augmented Generation (RAG)
+* Semantic vector search using FAISS
+* Sentence Transformer embeddings
+* Structured academic prompts
+* Groq LLM integration for fast inference
+
+### Backend Features
+
+* FastAPI production API
+* Clean architecture backend design
+* PostgreSQL database (Supabase compatible)
+* SQLAlchemy ORM
+* JWT authentication with refresh tokens
+* HTTP-only secure cookies
+* Chat history storage
+* Document ingestion pipeline
+* Admin-only PDF upload
+* Rate limiting middleware
+* Structured logging
+* Docker deployment
+
+### Frontend Features
+
+* React + Vite application
+* ChatGPT-style chat interface
+* Subject selection
+* Authenticated routes
+* Cookie-based JWT authentication
+* Admin document upload panel
+* Toast notifications and loading indicators
+* Axios API integration
+* React Router navigation
+
+### Infrastructure
+
+* Docker containerization
+* Render backend deployment
+* Vercel frontend hosting
+* Supabase PostgreSQL database
+* Automated test suite
+
+---
+
+# Technology Stack
+
+## Backend
+
+* FastAPI
+* SQLAlchemy
+* PostgreSQL
+* JWT Authentication
+* Pydantic Validation
+
+## AI / Machine Learning
+
+* Sentence Transformers
+* FAISS Vector Search
+* Groq LLM API
+
+## Data Processing
+
+* PyMuPDF for PDF extraction
+* Token-based chunking
+
+## Frontend
+
+* React
+* Vite
 * React Router
-
-HTTP Client
-
 * Axios
-
-UI Framework
-
 * Bootstrap 5
-
-State Management
-
 * React Context API
 
-Authentication
+## Infrastructure
 
-* Cookie-based JWT authentication
-
-Deployment
-
+* Docker
+* Render
+* Supabase
 * Vercel
+
+## Testing
+
+* Pytest
+* FastAPI TestClient
 
 ---
 
-## Project Structure
+# Backend Architecture
+
+```
+backend/
+│
+├── app/
+│   ├── api/              # Route definitions
+│   ├── services/         # Business logic
+│   ├── models/           # Database models
+│   ├── schemas/          # API validation
+│   ├── middleware/       # Logging & rate limiting
+│   ├── integrations/     # RAG adapter layer
+│   ├── core/             # Security and configuration
+│   ├── database/         # DB sessions and migrations
+│   ├── lifespan.py       # Startup / shutdown lifecycle
+│   └── main.py           # Application entry point
+│
+├── rag/                  # Complete RAG pipeline
+│   ├── ingestion/
+│   ├── chunking/
+│   ├── embeddings/
+│   ├── vector_store/
+│   ├── retrieval/
+│   ├── prompts/
+│   └── services/
+│
+├── tests/
+└── infrastructure/
+```
+
+---
+
+# Frontend Architecture
 
 ```
 frontend/
@@ -63,76 +196,102 @@ frontend/
 ├── src/
 │   ├── api/                # API request layer
 │   ├── components/         # Reusable UI components
-│   ├── context/            # Auth and chat state management
+│   ├── context/            # Auth & chat state
 │   ├── hooks/              # Custom React hooks
 │   ├── layouts/            # Page layouts
 │   ├── pages/              # Application pages
 │   ├── router/             # Route protection
-│   ├── services/           # Cross-cutting logic
-│   ├── styles/             # Global styling
+│   ├── services/           # Business logic
+│   ├── styles/             # Global styles
 │   ├── utils/              # Helper utilities
 │   ├── App.jsx
 │   └── main.jsx
 │
 ├── public/
 ├── package.json
-├── vite.config.js
-└── README.md
+└── vite.config.js
 ```
 
 ---
 
-## Features
+# Retrieval-Augmented Generation Pipeline
 
-Authentication
+The RAG engine consists of several modular stages.
 
-* Secure login and registration
-* Cookie-based JWT authentication
-* Protected routes
-* Role-based access control (admin / student)
+### Document Ingestion
 
-AI Chat Interface
+* Extract text from PDFs
+* Clean and normalize content
 
-* ChatGPT-style conversation UI
-* Subject selection
-* AI-generated structured answers
-* Retrieved context visualization
+### Chunking
 
-Admin Panel
+* Token-aware chunking
+* Metadata enrichment
 
-* Upload academic PDFs
-* Select subject category
-* Monitor system index status
+### Embedding Generation
 
-User Experience
+* Sentence Transformer embeddings
 
-* Auto-scroll chat window
-* Loading indicators
-* Error handling
-* Toast notifications
+### Vector Storage
 
----
+* FAISS vector index for similarity search
 
-## Environment Variables
+### Retrieval
 
-Create a `.env` file in the project root.
+* Cosine similarity search
+* Subject-aware filtering
 
-```
-VITE_API_BASE_URL=http://localhost:8000
-```
+### Prompt Construction
 
-For production deployment, set this variable in the hosting platform (e.g., Vercel).
+* Academic structured prompts
+* Context injection
+
+### Generation
+
+* Groq LLM generates final answer
+
+This ensures answers are grounded in real academic material.
 
 ---
 
-## Installation
+# Security Features
 
-Clone the repository:
+* JWT authentication
+* Access + refresh token lifecycle
+* HTTP-only secure cookies
+* Password hashing with bcrypt
+* Admin-only ingestion endpoints
+* Input validation via Pydantic
+* Rate limiting middleware
+* Structured error handling
+
+---
+
+# Local Development Setup
+
+## Backend
+
+Install dependencies:
 
 ```
-git clone https://github.com/yourusername/ai-academic-assistant-frontend.git
-cd ai-academic-assistant-frontend
+pip install -r requirements.txt
 ```
+
+Run server:
+
+```
+uvicorn app.main:app --reload
+```
+
+Open API docs:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Frontend
 
 Install dependencies:
 
@@ -140,13 +299,13 @@ Install dependencies:
 npm install
 ```
 
-Run the development server:
+Run development server:
 
 ```
 npm run dev
 ```
 
-Open the app:
+Open:
 
 ```
 http://localhost:5173
@@ -154,95 +313,146 @@ http://localhost:5173
 
 ---
 
-## Build for Production
+# Environment Variables
+
+Frontend `.env`
 
 ```
-npm run build
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
-The optimized production build will be generated in:
+Backend `.env`
 
 ```
-dist/
-```
-
----
-
-## Deployment
-
-This project is optimized for deployment on **Vercel**.
-
-Steps:
-
-1. Push the repository to GitHub.
-2. Import the project into Vercel.
-3. Configure environment variables.
-4. Deploy.
-
-Build configuration:
-
-```
-Build Command: npm run build
-Output Directory: dist
+DATABASE_URL=your_database_url
+SECRET_KEY=your_secret_key
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=7
+FRONTEND_URL=http://localhost:5173
 ```
 
 ---
 
-## Backend Integration
+# Example API Request
 
-The frontend communicates with a FastAPI backend that implements:
+### POST `/api/v1/chat`
 
-* Retrieval-Augmented Generation (RAG)
-* Vector search using FAISS
-* Document ingestion pipeline
-* Groq LLM inference
-* JWT authentication
-* PostgreSQL database (Supabase)
-
-Example API endpoint used by the chat interface:
-
-```
-POST /api/v1/chat
-```
-
-Request format:
+Request:
 
 ```
 {
   "subject": "OS",
-  "question": "What is deadlock?"
+  "question": "Explain deadlock prevention"
+}
+```
+
+Response:
+
+```
+{
+  "answer": "...",
+  "retrieved_chunks": [...],
+  "subject": "OS",
+  "timestamp": "..."
 }
 ```
 
 ---
 
-## Security Considerations
+# Running Tests
 
-* JWT tokens stored in **HTTP-only cookies**
-* Credentials sent using `withCredentials: true`
-* Backend enforces role-based authorization
-* File uploads validated server-side
+Run automated test suite:
+
+```
+pytest
+```
+
+Tests cover:
+
+* authentication flow
+* chat endpoint
+* file upload validation
+* RAG adapter behavior
 
 ---
 
-## Future Improvements
+# Deployment
 
+### Frontend
+
+* Platform: **Vercel**
+
+Build command:
+
+```
+npm run build
+```
+
+Output directory:
+
+```
+dist
+```
+
+---
+
+### Backend
+
+* Platform: **Render**
+* Docker container deployment
+
+---
+
+### Database
+
+* **Supabase PostgreSQL**
+
+---
+
+### Vector Database
+
+* **FAISS index with persistent storage**
+
+---
+
+# Future Improvements
+
+Possible future upgrades:
+
+* Hybrid search (BM25 + vector search)
+* Re-ranking models
+* Redis-based rate limiting
+* Distributed RAG microservice
+* GPU embedding service
+* Token usage tracking
 * Streaming AI responses
-* Markdown rendering for AI answers
-* Chat history persistence
-* Citation links to source documents
-* Dark mode support
-* Analytics dashboard
+* Chat history visualization
+* Citation linking to source documents
 
 ---
 
-## License
+# Why This Project Matters
 
-This project is intended for educational and research purposes.
+This project demonstrates:
+
+* Real-world AI system architecture
+* Production-grade backend design
+* Retrieval-Augmented Generation implementation
+* Integration of machine learning pipelines with APIs
+* Secure authentication and data handling
+* Full-stack system development
+
+It emphasizes **engineering rigor rather than simple AI demos**.
 
 ---
 
-## Author
+# Author
 
-Thrinesh Yerra
+**Thrinesh Yerra**
 Computer Science Engineering Student
+
+Interested in building:
+
+* AI systems
+* Backend architectures
+* Real-world machine learning applications
