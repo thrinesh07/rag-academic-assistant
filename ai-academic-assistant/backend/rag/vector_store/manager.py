@@ -101,6 +101,23 @@ class VectorIndex:
         return results
 
     # ------------------------------------------------
+    # RECONSTRUCT VECTOR (FIX FOR RETRIEVER)
+    # ------------------------------------------------
+
+    def reconstruct(self, idx: int):
+        """
+        Returns embedding vector from FAISS index.
+        Required for subject-filtered retrieval.
+        """
+
+        self._ensure_loaded()
+
+        if idx >= self.index.ntotal:
+            raise IndexError("Vector index out of range")
+
+        return self.index.reconstruct(idx)
+
+    # ------------------------------------------------
     # SAVE
     # ------------------------------------------------
 
